@@ -965,6 +965,13 @@ private slots:
 	void StackedMixerAreaContextMenuRequested();
 
 	void ResizeOutputSizeOfSource();
+    
+    //recorder
+    void on_recordDisplayButton_clicked();
+    void on_recordWindowButton_clicked();
+    void on_recordCameraButton_clicked();
+    void on_recordMicphoneButton_clicked();
+    void on_recordSystemAudioButton_clicked();
 
 public slots:
 	void on_actionResetTransform_triggered();
@@ -988,6 +995,26 @@ public:
 
 private:
 	std::unique_ptr<Ui::OBSBasic> ui;
+    
+public:
+    int AddDefaultSourcesForRecording();
+    void InitRecordingUI();
+    
+public slots:
+    //displaycapture
+    void on_comboBoxDisplayList_currentIndexChanged(int idx);
+
+    //windowcapture
+    void on_comboBoxWindowList_currentIndexChanged(int idx);
+
+    //camera
+    void on_comboBoxVideoDeviceList_currentIndexChanged(int idx);
+
+    //inputaudio
+    void on_comboBoxInputAudioList_currentIndexChanged(int idx);
+
+    //output audio
+    void on_comboBoxOutputAudioList_currentIndexChanged(int idx);
 };
 
 class SceneRenameDelegate : public QStyledItemDelegate {

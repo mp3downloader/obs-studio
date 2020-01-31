@@ -232,6 +232,7 @@ set(obs_SOURCES
 	window-basic-preview.cpp
 	window-basic-about.cpp
 	window-importer.cpp
+	window-basic-recordingconfig.cpp
 	window-namedialog.cpp
 	window-log-reply.cpp
 	window-projector.cpp

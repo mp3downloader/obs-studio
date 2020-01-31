@@ -26,7 +26,7 @@ static NSComparator win_info_cmp = ^(NSDictionary *o1, NSDictionary *o2) {
 NSArray *enumerate_windows(void)
 {
 	NSArray *arr = (NSArray *)CGWindowListCopyWindowInfo(
-		kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
+		kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
 
 	[arr autorelease];
 

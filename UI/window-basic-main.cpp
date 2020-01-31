@@ -345,12 +345,12 @@ OBSBasic::OBSBasic(QWidget *parent)
 	assignDockToggle(statsDock, ui->toggleStats);
 
 	//hide all docking panes
-	ui->toggleScenes->setChecked(false);
-	ui->toggleSources->setChecked(false);
-	ui->toggleMixer->setChecked(false);
-	ui->toggleTransitions->setChecked(false);
-	ui->toggleControls->setChecked(false);
-	ui->toggleStats->setChecked(false);
+    ui->toggleScenes->setChecked(false);
+    ui->toggleSources->setChecked(false);
+    ui->toggleMixer->setChecked(false);
+    ui->toggleTransitions->setChecked(false);
+    ui->toggleControls->setChecked(false);
+    ui->toggleStats->setChecked(false);
 
 	QPoint curPos;
 
@@ -406,6 +406,12 @@ OBSBasic::OBSBasic(QWidget *parent)
 		this,
 		SLOT(ScenesReordered(const QModelIndex &, int, int,
 				     const QModelIndex &, int)));
+    
+//    ui->transitionsDock->hide();
+//    ui->scenesDock->setVisible(false);
+//    ui->sourcesDock->setVisible(false);
+//    ui->mixerDock->setVisible(false);
+//    ui->controlsDock->setVisible(false);
 }
 
 static void SaveAudioDevice(const char *name, int channel, obs_data_t *parent,
@@ -872,6 +878,12 @@ void OBSBasic::Load(const char *file)
 		disableSaving--;
 		blog(LOG_INFO, "No scene file found, creating default scene");
 		CreateDefaultScene(true);
+        /* ------------------- */
+        //判断是否包含几个缺省的sources
+        AddDefaultSourcesForRecording();
+        InitRecordingUI();
+        /* ------------------- */
+
 		SaveProject();
 		return;
 	}
@@ -979,7 +991,12 @@ retryScene:
 	obs_data_array_release(sources);
 	obs_data_array_release(groups);
 	obs_data_array_release(sceneOrder);
-
+    
+    
+    /* ------------------- */
+    //判断是否包含几个缺省的sources
+    AddDefaultSourcesForRecording();
+    InitRecordingUI();
 	/* ------------------- */
 
 	bool projectorSave = config_get_bool(GetGlobalConfig(), "BasicWindow",
@@ -1754,6 +1771,7 @@ void OBSBasic::OBSInit()
 			on_resetUI_triggered();
 	}
 
+
 	bool pre23Defaults = config_get_bool(App()->GlobalConfig(), "General",
 					     "Pre23Defaults");
 	if (pre23Defaults) {
@@ -1774,7 +1792,6 @@ void OBSBasic::OBSInit()
 	ui->lockUI->blockSignals(true);
 	ui->lockUI->setChecked(docksLocked);
 	ui->lockUI->blockSignals(false);
-
 #ifndef __APPLE__
 	SystemTray(true);
 #endif

@@ -1676,9 +1676,12 @@ void WidgetInfo::ListChanged(const char *setting)
 				    data.value<double>());
 		break;
 	case OBS_COMBO_FORMAT_STRING:
+        {
 		obs_data_set_string(view->settings, setting,
 				    data.toByteArray().constData());
+            printf("\n\n***---%s\n\n", data.toByteArray().constData());
 		break;
+        }
 	}
 }
 
@@ -1862,16 +1865,16 @@ void WidgetInfo::ControlChanged()
 		break;
 	}
 
-	if (view->callback && !view->deferUpdate)
-		view->callback(view->obj, view->settings);
+    if (view->callback && !view->deferUpdate)
+        view->callback(view->obj, view->settings);
 
-	view->SignalChanged();
-
-	if (obs_property_modified(property, view->settings)) {
-		view->lastFocused = setting;
-		QMetaObject::invokeMethod(view, "RefreshProperties",
-					  Qt::QueuedConnection);
-	}
+//    view->SignalChanged();
+//
+//    if (obs_property_modified(property, view->settings)) {
+//        view->lastFocused = setting;
+//        QMetaObject::invokeMethod(view, "RefreshProperties",
+//                      Qt::QueuedConnection);
+//    }
 }
 
 class EditableItemDialog : public QDialog {
