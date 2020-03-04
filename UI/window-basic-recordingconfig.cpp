@@ -159,7 +159,7 @@ static void AddComboItem(QComboBox *combo, obs_property_t *prop,
     item->setFlags(Qt::NoItemFlags);
 }
 
-static void populateDevice(QComboBox *comboBox, obs_property_t *property)
+static void populateDevice(QComboBox *comboBox, obs_property_t *property, OBSData settings)
 {
     const char *propertyName = obs_property_name(property);
     int count = obs_property_list_item_count(property);
@@ -171,6 +171,32 @@ static void populateDevice(QComboBox *comboBox, obs_property_t *property)
     
     for (size_t i = 0; i < count; i++)
         AddComboItem(comboBox, property, format, i);
+    
+    
+    //设置选中项
+    string value = from_obs_data(settings, name, format);
+    
+
+    int idx = comboBox->findData(QByteArray(value.c_str()));
+
+    if (idx != -1)
+        comboBox->setCurrentIndex(idx);
+    
+    if (obs_data_has_autoselect_value(settings, name)) {
+        string autoselect =
+        from_obs_data_autoselect(settings, name, format);
+        int id = combo->findData(QT_UTF8(autoselect.c_str()));
+        
+        if (id != -1 && id != idx) {
+            QString actual = combo->itemText(id);
+            QString selected = combo->itemText(idx);
+            QString combined = QTStr(
+                                     "Basic.PropertiesWindow.AutoSelectFormat");
+            combo->setItemText(idx,
+                               combined.arg(selected).arg(actual));
+        }
+    }
+
     comboBox->blockSignals(false);
 }
 
@@ -190,30 +216,52 @@ static obs_property_t *getListProperty(const char* sourceName, const char *prope
     }
 }
 
+static OBSData getSourceSettings(const char *sourceName)
+{
+    OBSSource source = obs_get_source_by_name(sourceName);
+    if (source)
+    {
+        OBSData *settings = obs_source_get_settings(source);
+        return settings;
+    }
+    else
+    {
+        qDebug() << "Can't get source " << sourceName;
+        return nullptr;
+    }
+}
+
 
 //初始化界面。设备列表。按钮是否显示。音频音量（后续）。
 void OBSBasic::InitRecordingUI()
 {
     //displaycapture
     obs_property_t *displayListProperty = getListProperty(DEFAULT_SOURCE_NAME_DISPLAY_CAPTURE, "display");
-    populateDevice(ui->comboBoxDisplayList, displayListProperty);
+    OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_DISPLAY_CAPTURE);
+    populateDevice(ui->comboBoxDisplayList, displayListProperty, sourceSettings);
     
     //windowcapture
     obs_property_t *windowListProperty = getListProperty(DEFAULT_SOURCE_NAME_WINDOW_CAPTURE, "window");
-    populateDevice(ui->comboBoxWindowList, windowListProperty);
+    sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_WINDOW_CAPTURE);
+    populateDevice(ui->comboBoxWindowList, windowListProperty, sourceSettings);
+
     
     //camera
     obs_property_t *videoDeviceListProperty = getListProperty(DEFAULT_SOURCE_NAME_AV_CAPTURE_INPUT, "device");
-    populateDevice(ui->comboBoxVideoDeviceList, videoDeviceListProperty);
+    sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_AV_CAPTURE_INPUT);
+    populateDevice(ui->comboBoxVideoDeviceList, videoDeviceListProperty, sourceSettings);
 
     
     //inputaudio
     obs_property_t *inputAudioListProperty = getListProperty(DEFAULT_SOURCE_NAME_COREAUDIO_INPUT_CAPTURE, "device_id");
-    populateDevice(ui->comboBoxInputAudioList, inputAudioListProperty);
+    sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_COREAUDIO_INPUT_CAPTURE);
+    populateDevice(ui->comboBoxInputAudioList, inputAudioListProperty, sourceSettings);
+
     
     //output audio
     obs_property_t *outputAudioListProperty = getListProperty(DEFAULT_SOURCE_NAME_COREAUDIO_OUTPUT_CAPTURE, "device_id");
-    populateDevice(ui->comboBoxOutputAudioList, outputAudioListProperty);
+    sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_COREAUDIO_OUTPUT_CAPTURE);
+    populateDevice(ui->comboBoxOutputAudioList, outputAudioListProperty, sourceSettings);
 }
 
 void OBSBasic::on_recordDisplayButton_clicked()
@@ -227,7 +275,8 @@ void OBSBasic::on_recordDisplayButton_clicked()
         if (obs_sceneitem_visible(si))
         {
             obs_property_t *displayListProperty = getListProperty(DEFAULT_SOURCE_NAME_DISPLAY_CAPTURE, "display");
-            populateDevice(ui->comboBoxDisplayList, displayListProperty);
+            OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_DISPLAY_CAPTURE);
+            populateDevice(ui->comboBoxDisplayList, displayListProperty, sourceSettings);
         }
     }
 }
@@ -263,7 +312,8 @@ void OBSBasic::on_recordWindowButton_clicked()
         if (obs_sceneitem_visible(si))
         {
             obs_property_t *windowListProperty = getListProperty(DEFAULT_SOURCE_NAME_WINDOW_CAPTURE, "window");
-            populateDevice(ui->comboBoxWindowList, windowListProperty);
+            OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_WINDOW_CAPTURE);
+            populateDevice(ui->comboBoxWindowList, windowListProperty, sourceSettings);
         }
     }
 }
@@ -285,7 +335,8 @@ void OBSBasic::on_recordCameraButton_clicked()
         if (obs_sceneitem_visible(si))
         {
             obs_property_t *videoDeviceListProperty = getListProperty(DEFAULT_SOURCE_NAME_AV_CAPTURE_INPUT, "device");
-            populateDevice(ui->comboBoxVideoDeviceList, videoDeviceListProperty);
+            OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_AV_CAPTURE_INPUT);
+            populateDevice(ui->comboBoxVideoDeviceList, videoDeviceListProperty, sourceSettings);
         }
     }
 }
@@ -307,7 +358,8 @@ void OBSBasic::on_recordMicphoneButton_clicked()
         if (obs_sceneitem_visible(si))
         {
             obs_property_t *inputAudioListProperty = getListProperty(DEFAULT_SOURCE_NAME_COREAUDIO_INPUT_CAPTURE, "device_id");
-            populateDevice(ui->comboBoxInputAudioList, inputAudioListProperty);
+            OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_COREAUDIO_INPUT_CAPTURE);
+            populateDevice(ui->comboBoxInputAudioList, inputAudioListProperty, sourceSettings);
         }
     }
 }
@@ -329,7 +381,8 @@ void OBSBasic::on_recordSystemAudioButton_clicked()
         if (obs_sceneitem_visible(si))
         {
             obs_property_t *outputAudioListProperty = getListProperty(DEFAULT_SOURCE_NAME_COREAUDIO_OUTPUT_CAPTURE, "device_id");
-            populateDevice(ui->comboBoxOutputAudioList, outputAudioListProperty);
+            OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_COREAUDIO_OUTPUT_CAPTURE);
+            populateDevice(ui->comboBoxOutputAudioList, outputAudioListProperty, sourceSettings);
         }
     }
     
