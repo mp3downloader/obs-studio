@@ -173,29 +173,29 @@ static void populateDevice(QComboBox *comboBox, obs_property_t *property, OBSDat
         AddComboItem(comboBox, property, format, i);
     
     
-    //设置选中项
-    string value = from_obs_data(settings, name, format);
-    
-
-    int idx = comboBox->findData(QByteArray(value.c_str()));
-
-    if (idx != -1)
-        comboBox->setCurrentIndex(idx);
-    
-    if (obs_data_has_autoselect_value(settings, name)) {
-        string autoselect =
-        from_obs_data_autoselect(settings, name, format);
-        int id = combo->findData(QT_UTF8(autoselect.c_str()));
-        
-        if (id != -1 && id != idx) {
-            QString actual = combo->itemText(id);
-            QString selected = combo->itemText(idx);
-            QString combined = QTStr(
-                                     "Basic.PropertiesWindow.AutoSelectFormat");
-            combo->setItemText(idx,
-                               combined.arg(selected).arg(actual));
-        }
-    }
+//    //设置选中项
+//    string value = from_obs_data(settings, name, format);
+//
+//
+//    int idx = comboBox->findData(QByteArray(value.c_str()));
+//
+//    if (idx != -1)
+//        comboBox->setCurrentIndex(idx);
+//
+//    if (obs_data_has_autoselect_value(settings, name)) {
+//        string autoselect =
+//        from_obs_data_autoselect(settings, name, format);
+//        int id = combo->findData(QT_UTF8(autoselect.c_str()));
+//
+//        if (id != -1 && id != idx) {
+//            QString actual = combo->itemText(id);
+//            QString selected = combo->itemText(idx);
+//            QString combined = QTStr(
+//                                     "Basic.PropertiesWindow.AutoSelectFormat");
+//            combo->setItemText(idx,
+//                               combined.arg(selected).arg(actual));
+//        }
+//    }
 
     comboBox->blockSignals(false);
 }
@@ -221,7 +221,7 @@ static OBSData getSourceSettings(const char *sourceName)
     OBSSource source = obs_get_source_by_name(sourceName);
     if (source)
     {
-        OBSData *settings = obs_source_get_settings(source);
+        OBSData settings = obs_source_get_settings(source);
         return settings;
     }
     else
