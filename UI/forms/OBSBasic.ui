@@ -423,7 +423,7 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>16</width>
+     <width>40</width>
      <height>137</height>
     </size>
    </property>
@@ -570,7 +570,7 @@
   <widget class="OBSDock" name="sourcesDock">
    <property name="minimumSize">
     <size>
-     <width>16</width>
+     <width>80</width>
      <height>137</height>
     </size>
    </property>
@@ -718,7 +718,7 @@
   <widget class="OBSDock" name="mixerDock">
    <property name="minimumSize">
     <size>
-     <width>16</width>
+     <width>30</width>
      <height>109</height>
     </size>
    </property>
@@ -780,7 +780,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>20</width>
+           <width>28</width>
            <height>16</height>
           </rect>
          </property>
@@ -871,7 +871,7 @@
    <property name="minimumSize">
     <size>
      <width>16</width>
-     <height>116</height>
+     <height>119</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -1129,8 +1129,8 @@
   <widget class="OBSDock" name="controlsDock">
    <property name="minimumSize">
     <size>
-     <width>16</width>
-     <height>148</height>
+     <width>40</width>
+     <height>158</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -1299,12 +1299,31 @@
       <rect>
        <x>10</x>
        <y>50</y>
-       <width>71</width>
-       <height>71</height>
+       <width>72</width>
+       <height>72</height>
       </rect>
      </property>
      <property name="text">
-      <string>display</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="obs.qrc">
+       <normaloff>:/recorder/images/recorder/display-off.svg</normaloff>:/recorder/images/recorder/display-off.svg</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>46</width>
+       <height>46</height>
+      </size>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
      </property>
     </widget>
     <widget class="QPushButton" name="recordWindowButton">
@@ -1312,12 +1331,22 @@
       <rect>
        <x>110</x>
        <y>50</y>
-       <width>71</width>
-       <height>71</height>
+       <width>72</width>
+       <height>72</height>
       </rect>
      </property>
      <property name="text">
-      <string>win</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="obs.qrc">
+       <normaloff>:/recorder/images/recorder/window-off.svg</normaloff>:/recorder/images/recorder/window-off.svg</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>46</width>
+       <height>46</height>
+      </size>
      </property>
     </widget>
     <widget class="QPushButton" name="recordCameraButton">
@@ -1325,12 +1354,22 @@
       <rect>
        <x>200</x>
        <y>50</y>
-       <width>71</width>
-       <height>71</height>
+       <width>72</width>
+       <height>72</height>
       </rect>
      </property>
      <property name="text">
-      <string>cam</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="obs.qrc">
+       <normaloff>:/recorder/images/recorder/camera-off.svg</normaloff>:/recorder/images/recorder/camera-off.svg</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>46</width>
+       <height>46</height>
+      </size>
      </property>
     </widget>
     <widget class="QPushButton" name="recordMicphoneButton">
@@ -1338,12 +1377,22 @@
       <rect>
        <x>310</x>
        <y>51</y>
-       <width>81</width>
-       <height>61</height>
+       <width>72</width>
+       <height>72</height>
       </rect>
      </property>
      <property name="text">
-      <string>mic</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="obs.qrc">
+       <normaloff>:/recorder/images/recorder/micphone-off.svg</normaloff>:/recorder/images/recorder/micphone-off.svg</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>46</width>
+       <height>46</height>
+      </size>
      </property>
     </widget>
     <widget class="QPushButton" name="recordSystemAudioButton">
@@ -1351,12 +1400,22 @@
       <rect>
        <x>430</x>
        <y>50</y>
-       <width>91</width>
-       <height>71</height>
+       <width>72</width>
+       <height>72</height>
       </rect>
      </property>
      <property name="text">
-      <string>audio</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="obs.qrc">
+       <normaloff>:/recorder/images/recorder/audio-off.svg</normaloff>:/recorder/images/recorder/audio-off.svg</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>46</width>
+       <height>46</height>
+      </size>
      </property>
     </widget>
     <widget class="QComboBox" name="comboBoxDisplayList">
@@ -1364,7 +1423,7 @@
       <rect>
        <x>10</x>
        <y>130</y>
-       <width>51</width>
+       <width>71</width>
        <height>26</height>
       </rect>
      </property>
@@ -1372,9 +1431,9 @@
     <widget class="QComboBox" name="comboBoxWindowList">
      <property name="geometry">
       <rect>
-       <x>120</x>
-       <y>140</y>
-       <width>41</width>
+       <x>110</x>
+       <y>130</y>
+       <width>71</width>
        <height>26</height>
       </rect>
      </property>
@@ -1382,9 +1441,9 @@
     <widget class="QComboBox" name="comboBoxVideoDeviceList">
      <property name="geometry">
       <rect>
-       <x>220</x>
-       <y>140</y>
-       <width>41</width>
+       <x>200</x>
+       <y>130</y>
+       <width>71</width>
        <height>26</height>
       </rect>
      </property>
@@ -1393,7 +1452,7 @@
      <property name="geometry">
       <rect>
        <x>300</x>
-       <y>140</y>
+       <y>130</y>
        <width>104</width>
        <height>26</height>
       </rect>
@@ -1402,8 +1461,8 @@
     <widget class="QComboBox" name="comboBoxOutputAudioList">
      <property name="geometry">
       <rect>
-       <x>440</x>
-       <y>140</y>
+       <x>430</x>
+       <y>130</y>
        <width>104</width>
        <height>26</height>
       </rect>

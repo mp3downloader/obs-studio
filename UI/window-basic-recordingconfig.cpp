@@ -264,12 +264,22 @@ void OBSBasic::InitRecordingUI()
     populateDevice(ui->comboBoxOutputAudioList, outputAudioListProperty, sourceSettings);
 }
 
+static void toggleSourceVisible(OBSSceneItem si)
+{
+    Q_ASSERT(si != nullptr);
+    
+    if (obs_sceneitem_visible(si))
+        obs_sceneitem_set_visible(si, false);
+    else
+        obs_sceneitem_set_visible(si, true);
+}
+
 void OBSBasic::on_recordDisplayButton_clicked()
 {
     OBSSceneItem si = obs_scene_find_source(GetCurrentScene(), DEFAULT_SOURCE_NAME_DISPLAY_CAPTURE);
     if (si)
     {
-        obs_sceneitem_set_visible(si, true);
+        toggleSourceVisible(si);
         
         //获取新的设备列表
         if (obs_sceneitem_visible(si))
@@ -277,6 +287,15 @@ void OBSBasic::on_recordDisplayButton_clicked()
             obs_property_t *displayListProperty = getListProperty(DEFAULT_SOURCE_NAME_DISPLAY_CAPTURE, "display");
             OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_DISPLAY_CAPTURE);
             populateDevice(ui->comboBoxDisplayList, displayListProperty, sourceSettings);
+        }
+        
+        if (obs_sceneitem_visible(si))
+        {
+            ui->recordDisplayButton->setIcon(QIcon(":/recorder/images/recorder/display.svg"));
+        }
+        else
+        {
+            ui->recordDisplayButton->setIcon(QIcon(":/recorder/images/recorder/display-off.svg"));
         }
     }
 }
@@ -305,8 +324,7 @@ void OBSBasic::on_recordWindowButton_clicked()
         
         //弹出菜单
         
-        
-        obs_sceneitem_set_visible(si, true);
+        toggleSourceVisible(si);
         
         //获取新的设备列表
         if (obs_sceneitem_visible(si))
@@ -314,6 +332,15 @@ void OBSBasic::on_recordWindowButton_clicked()
             obs_property_t *windowListProperty = getListProperty(DEFAULT_SOURCE_NAME_WINDOW_CAPTURE, "window");
             OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_WINDOW_CAPTURE);
             populateDevice(ui->comboBoxWindowList, windowListProperty, sourceSettings);
+        }
+        
+        if (obs_sceneitem_visible(si))
+        {
+            ui->recordWindowButton->setIcon(QIcon(":/recorder/images/recorder/window.svg"));
+        }
+        else
+        {
+            ui->recordWindowButton->setIcon(QIcon(":/recorder/images/recorder/window-off.svg"));
         }
     }
 }
@@ -323,7 +350,7 @@ void OBSBasic::on_recordCameraButton_clicked()
     OBSSceneItem si = obs_scene_find_source(GetCurrentScene(), DEFAULT_SOURCE_NAME_AV_CAPTURE_INPUT);
     if (si)
     {
-        obs_sceneitem_set_visible(si, true);
+        toggleSourceVisible(si);
     
     //检测是否有设备
     
@@ -338,6 +365,15 @@ void OBSBasic::on_recordCameraButton_clicked()
             OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_AV_CAPTURE_INPUT);
             populateDevice(ui->comboBoxVideoDeviceList, videoDeviceListProperty, sourceSettings);
         }
+        
+        if (obs_sceneitem_visible(si))
+        {
+            ui->recordCameraButton->setIcon(QIcon(":/recorder/images/recorder/camera.svg"));
+        }
+        else
+        {
+            ui->recordCameraButton->setIcon(QIcon(":/recorder/images/recorder/camera-off.svg"));
+        }
     }
 }
 
@@ -346,7 +382,7 @@ void OBSBasic::on_recordMicphoneButton_clicked()
     OBSSceneItem si = obs_scene_find_source(GetCurrentScene(), DEFAULT_SOURCE_NAME_COREAUDIO_INPUT_CAPTURE);
     if (si)
     {
-        obs_sceneitem_set_visible(si, true);
+        toggleSourceVisible(si);
     
     //检测是否有设备
     
@@ -361,6 +397,15 @@ void OBSBasic::on_recordMicphoneButton_clicked()
             OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_COREAUDIO_INPUT_CAPTURE);
             populateDevice(ui->comboBoxInputAudioList, inputAudioListProperty, sourceSettings);
         }
+        
+        if (obs_sceneitem_visible(si))
+        {
+            ui->recordMicphoneButton->setIcon(QIcon(":/recorder/images/recorder/micphone.svg"));
+        }
+        else
+        {
+            ui->recordMicphoneButton->setIcon(QIcon(":/recorder/images/recorder/micphone-off.svg"));
+        }
     }
 }
 
@@ -369,7 +414,7 @@ void OBSBasic::on_recordSystemAudioButton_clicked()
     OBSSceneItem si = obs_scene_find_source(GetCurrentScene(), DEFAULT_SOURCE_NAME_COREAUDIO_OUTPUT_CAPTURE);
     if (si)
     {
-        obs_sceneitem_set_visible(si, true);
+        toggleSourceVisible(si);
     
     //检测是否有设备
     
@@ -383,6 +428,15 @@ void OBSBasic::on_recordSystemAudioButton_clicked()
             obs_property_t *outputAudioListProperty = getListProperty(DEFAULT_SOURCE_NAME_COREAUDIO_OUTPUT_CAPTURE, "device_id");
             OBSData sourceSettings = getSourceSettings(DEFAULT_SOURCE_NAME_COREAUDIO_OUTPUT_CAPTURE);
             populateDevice(ui->comboBoxOutputAudioList, outputAudioListProperty, sourceSettings);
+        }
+        
+        if (obs_sceneitem_visible(si))
+        {
+            ui->recordSystemAudioButton->setIcon(QIcon(":/recorder/images/recorder/audio.svg"));
+        }
+        else
+        {
+            ui->recordSystemAudioButton->setIcon(QIcon(":/recorder/images/recorder/audio-off.svg"));
         }
     }
     
