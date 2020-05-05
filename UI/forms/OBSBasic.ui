@@ -1428,7 +1428,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QComboBox" name="comboBoxWindowList">
+    <widget class="ComboBoxClickSignal" name="comboBoxWindowList">
      <property name="geometry">
       <rect>
        <x>110</x>
@@ -2110,6 +2110,11 @@
    <class>RecordButton</class>
    <extends>QPushButton</extends>
    <header>record-button.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>ComboBoxClickSignal</class>
+   <extends>QComboBox</extends>
+   <header location="global">Combobox-ClickSignal.hpp</header>
   </customwidget>
  </customwidgets>
  <resources>

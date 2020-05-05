@@ -1006,6 +1006,8 @@ public slots:
 
     //windowcapture
     void on_comboBoxWindowList_currentIndexChanged(int idx);
+    void on_comboBoxWindowList_clicked();
+
 
     //camera
     void on_comboBoxVideoDeviceList_currentIndexChanged(int idx);
