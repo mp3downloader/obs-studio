@@ -430,6 +430,12 @@ void OBSBasic::on_recordCameraButton_clicked()
         toggleSourceVisible(si);
     
     //检测是否有设备
+        if (ui->comboBoxVideoDeviceList->count() <= 0)
+        {
+            OBSMessageBox::information(this, QTStr(""), QTStr(""));
+            
+            obs_sceneitem_set_visible(si, false);
+        }
     
     //检测是否选择了设备
     
@@ -454,7 +460,14 @@ void OBSBasic::on_recordMicphoneButton_clicked()
     {
         toggleSourceVisible(si);
     
-    //检测是否有设备
+        //检测是否有设备
+        if (ui->comboBoxInputAudioList->count() <= 0)
+        {
+            //提示用户，没有发现音频输入设备
+            OBSMessageBox::information(this, QTStr(""), QTStr(""));
+            
+            obs_sceneitem_set_visible(si, false);
+        }
     
     //检测是否选择了设备
     
@@ -479,7 +492,18 @@ void OBSBasic::on_recordSystemAudioButton_clicked()
     {
         toggleSourceVisible(si);
     
-    //检测是否有设备
+        //检测是否有设备
+        if (obs_sceneitem_visible(si))
+        {
+            if (ui->comboBoxOutputAudioList->count() <= 0)
+            {
+                //mac 平台，打开网页提示用户录制系统声音的方法
+#if defined(Q_OS_MAC)
+                OBSMessageBox::information(this, QTStr(""), QTStr(""));
+#endif
+                obs_sceneitem_set_visible(si, false);
+            }
+        }
     
     //检测是否选择了设备
     
