@@ -1862,6 +1862,23 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 			blog(LOG_INFO, "Command Line Arguments: %s",
 			     stor.str().c_str());
 		}
+        
+#if __APPLE__
+        do {
+        if (!canAccessCamera())
+        {
+                
+        }
+        if (!canAccessMicroPhone())
+        {
+            
+        }
+        if (!canRecordScreen())
+        {
+            
+        }
+        } while (<#condition#>);
+#endif
 
 		if (!program.OBSInit())
 			return 0;

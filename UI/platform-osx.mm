@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #import <AppKit/AppKit.h>
+#import <AVFoundation/AVFoundation.h>
 
 using namespace std;
 
@@ -225,3 +226,129 @@ void InstallNSApplicationSubclass()
 {
 	[OBSApplication sharedApplication];
 }
+
+bool canRecordScreen()
+{
+    if (@available(macOS 10.15, *))
+    {
+        CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
+        NSUInteger numberOfWindows = CFArrayGetCount(windowList);
+        NSUInteger numberOfWindowsWithName = 0;
+        for (int idx = 0; idx < numberOfWindows; idx++)
+        {
+            NSDictionary *windowInfo = (NSDictionary *)CFArrayGetValueAtIndex(windowList, idx);
+            NSString *windowName = windowInfo[(id)kCGWindowName];
+            if (windowName)
+            {
+                numberOfWindowsWithName++;
+            }
+            else
+            {
+                //no kCGWindowName detected -> not enabled
+                break; //breaking early, numberOfWindowsWithName not increased
+            }
+        }
+        CFRelease(windowList);
+        return numberOfWindows == numberOfWindowsWithName;
+    }
+    return YES;
+}
+
+bool canAccessCamera()
+{
+    __block BOOL bCanAccess = YES;
+    
+    if (@available(macOS 10.14, *))
+    {
+        AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+        
+        switch (authStatus)
+        {
+            case AVAuthorizationStatusNotDetermined:
+            {
+                [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+                    if (granted)
+                    {
+                        bCanAccess = YES;
+                    }
+                    else
+                    {
+                        bCanAccess = NO;
+                    }
+                }];
+                break;
+            }
+                
+            case AVAuthorizationStatusAuthorized:
+            {
+                bCanAccess = YES;
+                break;
+            }
+            case AVAuthorizationStatusDenied:
+            {
+                bCanAccess = NO;
+                break;
+            }
+            case AVAuthorizationStatusRestricted:
+            {
+                bCanAccess = NO;
+                break;
+            }
+                
+            default:
+                break;
+        }
+    }
+
+    return bCanAccess;
+}
+
+bool canAccessMicroPhone()
+{
+    __block BOOL bCanAccess = YES;
+    
+    if (@available(macOS 10.14, *))
+    {
+        AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
+        switch (authStatus)
+        {
+            case AVAuthorizationStatusNotDetermined:
+            {
+                [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted){
+                    if (granted)
+                    {
+                        bCanAccess = YES;
+                    }
+                    else
+                    {
+                        bCanAccess = NO;
+                    }
+                }];
+                break;
+            }
+            
+            case AVAuthorizationStatusAuthorized:
+            {
+                bCanAccess = YES;
+                break;
+            }
+            case AVAuthorizationStatusDenied:
+            {
+                bCanAccess = NO;
+                break;
+            }
+            case AVAuthorizationStatusRestricted:
+            {
+                bCanAccess = NO;
+                break;
+            }
+                
+            default:
+                break;
+        }
+    }
+ 
+    return bCanAccess;
+}
+
+

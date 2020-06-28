@@ -61,10 +61,14 @@ public:
 
 RunOnceMutex GetRunOnceMutex(bool &already_running);
 QString GetMonitorName(const QString &id);
-#endif
+#endif 
 
 #ifdef __APPLE__
 void EnableOSXVSync(bool enable);
 void EnableOSXDockIcon(bool enable);
 void InstallNSApplicationSubclass();
+
+bool canRecordScreen();
+bool canAccessCamera();
+bool canAccessMicroPhone();
 #endif

@@ -599,3 +599,19 @@ void OBSBasic::on_comboBoxOutputAudioList_currentIndexChanged(int idx)
     listChanged(ui->comboBoxOutputAudioList, DEFAULT_SOURCE_NAME_COREAUDIO_OUTPUT_CAPTURE, "device_id");
 }
 
+//
+//权限检测
+//
+//启动时检测
+
+
+//ScreenRecorder
+//开启录屏时检测，点击录制并开启录屏时检测
+
+//Camera
+//开启录像时检测，点击录制并开启录像时检测
+
+//micphone
+//开启录音时检测，点击录制并开启录音时检测
+
+
