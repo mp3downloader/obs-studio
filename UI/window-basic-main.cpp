@@ -1679,6 +1679,8 @@ void OBSBasic::OBSInit()
 	bool sourceIconsVisible = config_get_bool(
 		GetGlobalConfig(), "BasicWindow", "ShowSourceIcons");
 	ui->toggleSourceIcons->setChecked(sourceIconsVisible);
+    
+    CheckRecordingPrivilege();
 
 	{
 		ProfileScope("OBSBasic::Load");

@@ -12,6 +12,7 @@
 
 #include "window-basic-main.hpp"
 #include "qt-wrappers.hpp"
+#include "platform.hpp"
 
 using namespace std;
 
@@ -600,13 +601,13 @@ void OBSBasic::on_comboBoxOutputAudioList_currentIndexChanged(int idx)
 }
 
 //
-//权限检测
+//权限检测。强制授权。
 //
-//启动时检测
+//启动时检测OBSBasic OBSInit里面？ load之前检测。如果没有授权，提示授权。授权失败，提示重启程序。
 
 
 //ScreenRecorder
-//开启录屏时检测，点击录制并开启录屏时检测
+//开启录屏时检测，点击录制并开启录屏时检测，提示用户需要重启。
 
 //Camera
 //开启录像时检测，点击录制并开启录像时检测
@@ -615,3 +616,49 @@ void OBSBasic::on_comboBoxOutputAudioList_currentIndexChanged(int idx)
 //开启录音时检测，点击录制并开启录音时检测
 
 
+//
+void OBSBasic::ShowAuthorizeMessage(AuthorizeType type)
+{
+    QMessageBox::StandardButtons buttons(QMessageBox::Ok | QMessageBox::Cancel);
+    QMessageBox mb(QMessageBox::Information,
+               QTStr("Access Camera"),
+               QTStr("Recording"), buttons,
+               this);
+    mb.setButtonText(QMessageBox::Yes,
+             QTStr("AlreadyRunning.LaunchAnyway"));
+    mb.setButtonText(QMessageBox::Cancel, QTStr("Cancel"));
+    mb.setDefaultButton(QMessageBox::Ok);
+
+    QMessageBox::StandardButton button;
+    button = (QMessageBox::StandardButton)mb.exec();
+    if (button == QMessageBox::Ok)
+    {
+        
+    }
+}
+
+void OBSBasic::CheckRecordingPrivilege()
+{
+#if __APPLE__
+    do {
+        if (!canAccessCamera())
+        {
+            //show authorize message
+            //openCameraPreferences
+            ShowAuthorizeMessage(AuthorizeType::AuthorizeType_Camera);
+        }
+        if (!canAccessMicroPhone())
+        {
+            //show authorize message
+            //openMicroPreferences
+            ShowAuthorizeMessage(AuthorizeType::AuthorizeType_Micphone);
+        }
+        if (!canRecordScreen())
+        {
+            //show authorize message
+            //openScreenCapturePreferences
+            ShowAuthorizeMessage(AuthorizeType::AuthorizeType_ScreenRecording);
+        }
+    } while (0);
+#endif
+}

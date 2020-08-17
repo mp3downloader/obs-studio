@@ -73,6 +73,12 @@ enum class QtDataRole {
 	OBSSignals,
 };
 
+enum class AuthorizeType {
+    AuthorizeType_Micphone = 0,
+    AuthorizeType_Camera = 1,
+    AuthorizeType_ScreenRecording = 2,
+};
+
 struct SavedProjectorInfo {
 	ProjectorType type;
 	int monitor;
@@ -1017,6 +1023,10 @@ public slots:
 
     //output audio
     void on_comboBoxOutputAudioList_currentIndexChanged(int idx);
+    
+    //check device access privilege
+    void ShowAuthorizeMessage(AuthorizeType type);
+    void CheckRecordingPrivilege();
 };
 
 class SceneRenameDelegate : public QStyledItemDelegate {

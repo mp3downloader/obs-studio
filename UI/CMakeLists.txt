@@ -114,9 +114,11 @@ if(WIN32)
 elseif(APPLE)
 	set(obs_PLATFORM_SOURCES
 		platform-osx.mm)
-
+    
 	find_package(AppKit REQUIRED)
-	set(obs_PLATFORM_LIBRARIES ${APPKIT_LIBRARIES})
+    find_package(AVFoundation REQUIRED)
+
+	set(obs_PLATFORM_LIBRARIES ${APPKIT_LIBRARIES} ${AVFOUNDATION_LIBRARIES})
 
 	add_definitions(-fobjc-arc)
 

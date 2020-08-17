@@ -29,8 +29,19 @@ NSArray *enumerate_windows(void)
 		kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
 
 	[arr autorelease];
+    
+    NSMutableArray *arrResult = [[[NSMutableArray alloc] init] autorelease];
+    for (NSDictionary* dictWinInfo in arr)
+    {
+        NSInteger nLevel = [[dictWinInfo objectForKey:(__bridge NSString*)kCGWindowLayer] integerValue];
 
-	return [arr sortedArrayUsingComparator:win_info_cmp];
+        if (nLevel == 0)
+        {
+            [arrResult addObject:dictWinInfo];
+        }
+    }
+    
+	return [arrResult sortedArrayUsingComparator:win_info_cmp];
 }
 
 #define WAIT_TIME_MS 500
