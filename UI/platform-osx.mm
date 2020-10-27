@@ -256,7 +256,7 @@ bool canRecordScreen()
 
 bool canAccessCamera()
 {
-    __block BOOL bCanAccess = YES;
+    __block BOOL bCanAccess = NO;
     
     if (@available(macOS 10.14, *))
     {
@@ -305,7 +305,7 @@ bool canAccessCamera()
 
 bool canAccessMicroPhone()
 {
-    __block BOOL bCanAccess = YES;
+    __block BOOL bCanAccess = NO;
     
     if (@available(macOS 10.14, *))
     {
@@ -351,4 +351,36 @@ bool canAccessMicroPhone()
     return bCanAccess;
 }
 
+
+void OpenMicphoneAccessPreferences()
+{
+    NSString* strRUL = @"x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone";
+
+    NSURL* theURL = [NSURL URLWithString:strRUL];
+    if(theURL)
+    {
+        [[NSWorkspace sharedWorkspace] openURL:theURL];
+    }
+}
+
+void OpenCameraAccessPreferences()
+{
+    NSString* strRUL = @"x-apple.systempreferences:com.apple.preference.security?Privacy_Camera";
+
+    NSURL* theURL = [NSURL URLWithString:strRUL];
+    if(theURL)
+    {
+        [[NSWorkspace sharedWorkspace] openURL:theURL];
+    }
+}
+
+void OpenScreenCapturePreferneces()
+{
+    NSString* strRUL = @"x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture";
+    NSURL* theURL = [NSURL URLWithString:strRUL];
+    if(theURL)
+    {
+        [[NSWorkspace sharedWorkspace] openURL:theURL];
+    }
+}
 

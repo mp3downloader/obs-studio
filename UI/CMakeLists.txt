@@ -134,7 +134,113 @@ elseif(APPLE)
 			${SPARKLE})
 		add_definitions(-DUPDATE_SPARKLE=1)
 	endif()
+ 
+    include_directories(SYSTEM "${CMAKE_SOURCE_DIR}/UI/audiodevicemgr/BackgroundMusic")
+    include_directories(SYSTEM "${CMAKE_SOURCE_DIR}/UI/audiodevicemgr/BackgroundMusic/PublicUtility")
+    include_directories(SYSTEM "${CMAKE_SOURCE_DIR}/UI/audiodevicemgr/BackgroundMusic/SharedSource")
+    
+    set(AUDIO_DEVICE_SRCS
+        audiodevicemgr/audiodevice_mgr.h
+        audiodevicemgr/audiodevice_mgr.mm
+        audiodevicemgr/authentication_mgr.h
+        audiodevicemgr/authentication_mgr.mm
+        audiodevicemgr/audiodevice_mgr_osx_impl.h
+        audiodevicemgr/audiodevice_mgr_osx_impl.mm)
+    
+    set(AUDIO_DEVICE_SRCS_BGM
+        audiodevicemgr/BackgroundMusic/BGMAudioDevice.h
+        audiodevicemgr/BackgroundMusic/BGMAudioDevice.cpp
+        audiodevicemgr/BackgroundMusic/BGMAudioDeviceManager.h
+        audiodevicemgr/BackgroundMusic/BGMAudioDeviceManager.mm
+        audiodevicemgr/BackgroundMusic/BGMBackgroundMusicDevice.cpp
+        audiodevicemgr/BackgroundMusic/BGMBackgroundMusicDevice.h
+        audiodevicemgr/BackgroundMusic/BGMDeviceControlsList.cpp
+        audiodevicemgr/BackgroundMusic/BGMDeviceControlsList.h
+        audiodevicemgr/BackgroundMusic/BGMDeviceControlSync.cpp
+        audiodevicemgr/BackgroundMusic/BGMDeviceControlSync.h
+        audiodevicemgr/BackgroundMusic/BGMPlayThrough.cpp
+        audiodevicemgr/BackgroundMusic/BGMPlayThrough.h
+        audiodevicemgr/BackgroundMusic/BGMPlayThroughRTLogger.cpp
+        audiodevicemgr/BackgroundMusic/BGMPlayThroughRTLogger.h)
+    
+    set(AUDIO_DEVICE_SRCS_BGM_PU
+        audiodevicemgr/BackgroundMusic/PublicUtility/BGMDebugLogging.c
+        audiodevicemgr/BackgroundMusic/PublicUtility/BGMDebugLogging.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/BGMThreadSafetyAnalysis.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAAtomic.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAAutoDisposer.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CABitOperations.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CACFArray.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CACFArray.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CACFDictionary.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CACFDictionary.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CACFNumber.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CACFNumber.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CACFString.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CACFString.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CADebugger.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CADebugger.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CADebugMacros.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CADebugMacros.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CADebugPrintf.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CADebugPrintf.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAException.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHALAudioDevice.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHALAudioDevice.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHALAudioObject.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHALAudioObject.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHALAudioStream.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHALAudioStream.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHALAudioSystemObject.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHALAudioSystemObject.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHostTimeBase.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAHostTimeBase.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAMutex.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAMutex.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAPropertyAddress.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAPThread.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CAPThread.h
+        audiodevicemgr/BackgroundMusic/PublicUtility/CARingBuffer.cpp
+        audiodevicemgr/BackgroundMusic/PublicUtility/CARingBuffer.h)
+        
+    set(AUDIO_DEVICE_SRCS_BGM_SS
+        audiodevicemgr/BackgroundMusic/SharedSource/BGM_TestUtils.h
+        audiodevicemgr/BackgroundMusic/SharedSource/BGM_Types.h
+        audiodevicemgr/BackgroundMusic/SharedSource/BGM_Utils.cpp
+        audiodevicemgr/BackgroundMusic/SharedSource/BGM_Utils.h
+        audiodevicemgr/BackgroundMusic/SharedSource/BGMXPCProtocols.h)
+        
+    source_group("Source Files\\audiodevicemgr" FILES ${AUDIO_DEVICE_SRCS})
+    source_group("Source Files\\audiodevicemgr\\BackgroundMusic" FILES ${AUDIO_DEVICE_SRCS_BGM})
+    source_group("Source Files\\audiodevicemgr\\BackgroundMusic\\SharedSource" FILES ${AUDIO_DEVICE_SRCS_BGM_SS})
+    source_group("Source Files\\audiodevicemgr\\BackgroundMusic\\PublicUtility" FILES ${AUDIO_DEVICE_SRCS_BGM_PU})
 
+    set(obs_PLATFORM_SOURCES
+        ${obs_PLATFORM_SOURCES}
+        ${AUDIO_DEVICE_SRCS}
+        ${AUDIO_DEVICE_SRCS_BGM}
+        ${AUDIO_DEVICE_SRCS_BGM_PU}
+        ${AUDIO_DEVICE_SRCS_BGM_SS})
+        
+    find_package(CoreAudio REQUIRED)
+    find_package(AudioToolbox REQUIRED)
+    find_package(Security REQUIRED)
+    set(obs_PLATFORM_LIBRARIES
+        ${obs_PLATFORM_LIBRARIES}
+        ${COREAUDIO_LIBRARIES}
+        ${AUDIOTOOLBOX_LIBRARIES}
+        ${SECURITY_LIBRARIES})
+        
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES")
+    
+    add_compile_definitions(CoreAudio_Debug=0)
+    add_compile_definitions(CoreAudio_UseSysLog=1)
+    add_compile_definitions(CoreAudio_StopOnAssert=0)
+    add_compile_definitions(CoreAudio_ThreadStampMessages=0)
+    add_compile_definitions(BGM_StopDebuggerOnLoggedExceptions=0)
+    add_compile_definitions(BGM_StopDebuggerOnLoggedUnexpectedExceptions=0)
+    add_compile_definitions(CoreAudio_StopOnThrow=0)
+    
 elseif(UNIX)
         find_package(Qt5X11Extras REQUIRED)
 
@@ -344,6 +450,7 @@ set(obs_importers_SOURCES
 
 source_group("importers\\Source Files" FILES ${obs_importers_SOURCES})
 source_group("importers\\Header Files" FILES ${obs_importers_HEADERS})
+
 
 set(obs_UI
 	forms/NameDialog.ui

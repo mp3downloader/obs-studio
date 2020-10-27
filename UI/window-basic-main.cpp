@@ -1680,14 +1680,15 @@ void OBSBasic::OBSInit()
 		GetGlobalConfig(), "BasicWindow", "ShowSourceIcons");
 	ui->toggleSourceIcons->setChecked(sourceIconsVisible);
     
-    CheckRecordingPrivilege();
-
 	{
 		ProfileScope("OBSBasic::Load");
 		disableSaving--;
 		Load(savePath);
 		disableSaving++;
 	}
+    
+    CheckRecordingPrivilege();
+
 
 	TimedCheckForUpdates();
 	loaded = true;

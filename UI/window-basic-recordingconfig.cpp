@@ -628,15 +628,26 @@ void OBSBasic::ShowAuthorizeMessage(AuthorizeType type)
              QTStr("AlreadyRunning.LaunchAnyway"));
     mb.setButtonText(QMessageBox::Cancel, QTStr("Cancel"));
     mb.setDefaultButton(QMessageBox::Ok);
+    mb.setButtonText(QMessageBox::Ok, QTStr("Open Preferences"));
 
     QMessageBox::StandardButton button;
     button = (QMessageBox::StandardButton)mb.exec();
     if (button == QMessageBox::Ok)
     {
-        
+        if (type == AuthorizeType::AuthorizeType_Micphone)
+            OpenMicphoneAccessPreferences();
+        else if (type == AuthorizeType::AuthorizeType_Camera)
+            OpenCameraAccessPreferences();
+        else if (type == AuthorizeType::AuthorizeType_ScreenRecording)
+            OpenScreenCapturePreferneces();
+        else
+            ;
     }
 }
 
+//add source在之后调用。在之前调用没什么用。设置之后需要重启程序。
+//第一次添加source的时候系统会提示。额外的检测放到后面就行了。
+//如果第一次没有授权，第二次授权是非阻塞的。授权之后需要重启程序。放到后面和放到前面没什么区别。
 void OBSBasic::CheckRecordingPrivilege()
 {
 #if __APPLE__

@@ -71,4 +71,8 @@ void InstallNSApplicationSubclass();
 bool canRecordScreen();
 bool canAccessCamera();
 bool canAccessMicroPhone();
+
+void OpenMicphoneAccessPreferences();
+void OpenCameraAccessPreferences();
+void OpenScreenCapturePreferneces();
 #endif
