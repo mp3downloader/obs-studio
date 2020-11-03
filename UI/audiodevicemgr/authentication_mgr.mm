@@ -12,17 +12,17 @@ static NSString* const kAudioShareProcessName = @"AudioShareProcessName";
 static NSString* const kAudioShareProcessUserId = @"AudioShareProcessUserId";
 static NSString* const kAudioShareProcessUserName = @"AudioShareProcessUserName";
 
-static int getBSDProcessList(kinfo_proc **processList, size_t *processCount)
+static int getProcessList(kinfo_proc **processList, size_t *processCount)
 {
     int                 nErr;
     kinfo_proc *        resultProcList;
-    bool                done;
+    bool                bDone;
     static const int    name[] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0 };
     size_t              length;
     
     *processCount = 0;
     resultProcList = NULL;
-    done = false;
+    bDone = false;
     
     do
     {
@@ -46,7 +46,7 @@ static int getBSDProcessList(kinfo_proc **processList, size_t *processCount)
             
             if (nErr == 0)
             {
-                done = true;
+                bDone = true;
             }
             else if (nErr == ENOMEM)
             {
@@ -55,7 +55,7 @@ static int getBSDProcessList(kinfo_proc **processList, size_t *processCount)
                 nErr = 0;
             }
         }
-    } while (nErr == 0 && ! done);
+    } while (nErr == 0 && ! bDone);
     
     if (nErr != 0 && resultProcList != NULL)
     {
@@ -454,39 +454,39 @@ static int const kCancelAuthorizeError = -128;
     kinfo_proc *processList = NULL;
     size_t processCount = 0;
     
-    getBSDProcessList(&processList, &processCount);
+    getProcessList(&processList, &processCount);
     
     NSMutableArray *processArray = [NSMutableArray arrayWithCapacity:0];
     for(int i = 0; i < processCount; i++)
     {
-        struct kinfo_proc *currentProcess = &processList[i];
-        if(!currentProcess)
+        struct kinfo_proc *aProcess = &processList[i];
+        if(!aProcess)
             continue;
         
-        NSMutableDictionary *entry = [NSMutableDictionary dictionaryWithCapacity:0];
-        NSNumber *processID = [NSNumber numberWithInt:currentProcess->kp_proc.p_pid];
-        NSString *processName = [NSString stringWithFormat:@"%s",currentProcess->kp_proc.p_comm];
+        NSMutableDictionary *processInfo = [NSMutableDictionary dictionaryWithCapacity:0];
+        NSNumber *processID = [NSNumber numberWithInt:aProcess->kp_proc.p_pid];
+        NSString *processName = [NSString stringWithFormat:@"%s", aProcess->kp_proc.p_comm];
         
         if(processID)
-            [entry setObject:processID forKey:kAudioShareProcessID];
+            [processInfo setObject:processID forKey:kAudioShareProcessID];
         
         if(processName)
-            [entry setObject:processName forKey:kAudioShareProcessName];
+            [processInfo setObject:processName forKey:kAudioShareProcessName];
         
-        struct passwd *user = getpwuid(currentProcess->kp_eproc.e_ucred.cr_uid);
+        struct passwd *user = getpwuid(aProcess->kp_eproc.e_ucred.cr_uid);
         if(user)
         {
-            NSNumber *userID = [NSNumber numberWithUnsignedInt:currentProcess->kp_eproc.e_ucred.cr_uid];
-            NSString *userName = [NSString stringWithFormat:@"%s",user->pw_name];
+            NSNumber *userID = [NSNumber numberWithUnsignedInt:aProcess->kp_eproc.e_ucred.cr_uid];
+            NSString *userName = [NSString stringWithFormat:@"%s", user->pw_name];
             
             if(userID)
-                [entry setObject:userID forKey:kAudioShareProcessUserId];
+                [processInfo setObject:userID forKey:kAudioShareProcessUserId];
             
             if(userName)
-                [entry setObject:userName forKey:kAudioShareProcessUserName];
+                [processInfo setObject:userName forKey:kAudioShareProcessUserName];
         }
         
-        [processArray addObject:[NSDictionary dictionaryWithDictionary:entry]];
+        [processArray addObject:[NSDictionary dictionaryWithDictionary:processInfo]];
     }
     
     free(processList);
@@ -497,24 +497,24 @@ static int const kCancelAuthorizeError = -128;
 
 - (int)getCoreAudioPid
 {
-    NSArray* appsArray = [self getProcessList];
-    if(!appsArray || appsArray.count<=0)
+    NSArray* processArray = [self getProcessList];
+    if(!processArray || processArray.count<=0)
         return 0;
     
-    NSDictionary* tmpApp = nil;
-    NSString* appName = nil;
-    NSString* appOwner = nil;
-    for(int i=0; i<appsArray.count; i++)
+    NSDictionary* processInfo = nil;
+    NSString* processName = nil;
+    NSString* processOwner = nil;
+    for(int i=0; i<processArray.count; i++)
     {
-        tmpApp = [appsArray objectAtIndex:i];
-        if(!tmpApp)
+        processInfo = [processArray objectAtIndex:i];
+        if(!processInfo)
             continue;
         
-        appName = [tmpApp objectForKey:kAudioShareProcessName];
-        appOwner = [tmpApp objectForKey:kAudioShareProcessUserName];
+        processName = [processInfo objectForKey:kAudioShareProcessName];
+        processOwner = [processInfo objectForKey:kAudioShareProcessUserName];
         
-        if([[appName lowercaseString] isEqualToString:@"coreaudiod"] && [[appOwner lowercaseString] isEqualToString:@"_coreaudiod"])
-            return [[tmpApp objectForKey:kAudioShareProcessID] intValue];
+        if([[processName lowercaseString] isEqualToString:@"coreaudiod"] && [[processOwner lowercaseString] isEqualToString:@"_coreaudiod"])
+            return [[processInfo objectForKey:kAudioShareProcessID] intValue];
     }
     
     return 0;
