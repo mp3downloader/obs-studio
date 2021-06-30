@@ -292,7 +292,11 @@ int OBSBasic::AddDefaultSourcesForRecording()
     for (int i = 0; i < DEFAULT_SOURCES_COUNT; i++)
         if (!ContainsSource(scene, default_sources[i]))
         {
-            AddDefaultSource(scene, default_sources[i], default_sources_name[i]);
+            bool bSuccess = AddDefaultSource(scene, default_sources[i], default_sources_name[i]);
+            if (!bSuccess)
+            {
+                OBSMessageBox::warning(this, QTStr(""), QTStr(""));
+            }
         }
     
     return 0;
@@ -619,13 +623,32 @@ void OBSBasic::on_comboBoxOutputAudioList_currentIndexChanged(int idx)
 //
 void OBSBasic::ShowAuthorizeMessage(AuthorizeType type)
 {
+    QString strTitle;
+    QString strMessage;
+    
+    if (type == AuthorizeType::AuthorizeType_Micphone)
+    {
+        strTitle = "\"AnyRecorder\" would like to access the microphone.";
+        strMessage = "\"AnyRecorder\" needs to access the microphone to enable audio input.";
+    }
+    else if (type == AuthorizeType::AuthorizeType_Camera)
+    {
+        strTitle = "\"AnyRecorder\" would like to access the camera.";
+        strMessage = "\"AnyRecorder\" needs to access the camera to enable video recording.";
+    }
+    else if (type == AuthorizeType::AuthorizeType_ScreenRecording)
+    {
+        strTitle = "\"AnyRecorder\" needs Screen Recording privillege.";
+        strMessage = "\"AnyRecorder\" needs Screen Recording privillege.";
+    }
+    else
+        ;
+    
     QMessageBox::StandardButtons buttons(QMessageBox::Ok | QMessageBox::Cancel);
-    QMessageBox mb(QMessageBox::Information,
-               QTStr("Access Camera"),
-               QTStr("Recording"), buttons,
+    QMessageBox mb(QMessageBox::Warning,
+               strTitle,
+               strMessage, buttons,
                this);
-    mb.setButtonText(QMessageBox::Yes,
-             QTStr("AlreadyRunning.LaunchAnyway"));
     mb.setButtonText(QMessageBox::Cancel, QTStr("Cancel"));
     mb.setDefaultButton(QMessageBox::Ok);
     mb.setButtonText(QMessageBox::Ok, QTStr("Open Preferences"));

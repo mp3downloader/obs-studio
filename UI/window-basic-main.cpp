@@ -84,6 +84,10 @@ using namespace std;
 
 #include "ui-config.h"
 
+#ifdef __APPLE__
+#include "audiodevicemgr/audiodevice_mgr.h"
+#endif
+
 struct QCef;
 struct QCefCookieManager;
 
@@ -1680,14 +1684,30 @@ void OBSBasic::OBSInit()
 		GetGlobalConfig(), "BasicWindow", "ShowSourceIcons");
 	ui->toggleSourceIcons->setChecked(sourceIconsVisible);
     
+    
+    
+    
+    //检测访问权限
+    CheckRecordingPrivilege();
+    
+    //安装audio driver
+    if (!IsAudioDriverInstalled())
+    {
+        bool bSuccess = InstallAudioDriver();
+        if (!bSuccess)
+        {
+            OBSMessageBox::warning(this, QTStr("Error"), QTStr("Install audio driver failed!"));
+        }
+    }
+    
+    //load scene and sources
 	{
 		ProfileScope("OBSBasic::Load");
 		disableSaving--;
 		Load(savePath);
 		disableSaving++;
 	}
-    
-    CheckRecordingPrivilege();
+
 
 
 	TimedCheckForUpdates();

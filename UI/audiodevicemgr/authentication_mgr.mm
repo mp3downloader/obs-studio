@@ -89,14 +89,12 @@ static int const kCancelAuthorizeError = -128;
 - (id)init
 {
     self = [super init];
-    _authorizationRef = NULL;
     _delegate = nil;
     return self;
 }
 
 - (void)dealloc
 {
-    [self deauthorize];
 }
 
 - (id)delegate
@@ -109,114 +107,133 @@ static int const kCancelAuthorizeError = -128;
     _delegate = delegate;
 }
 
-- (OSStatus)isAuthorizedForCommand:(NSString *)theCommand
+- (BOOL)authRemovePath:(NSString*)path
 {
-    AuthorizationItem items[1];
-    AuthorizationRights rights;
-    AuthorizationRights *authorizedRights;
-    AuthorizationFlags flags;
-    OSStatus err = 0;
+    BOOL result = NO;
     
-    if (_authorizationRef == NULL)
+	if (@available(macOS 10.13, *))
     {
-        rights.count = 0;
-        rights.items = NULL;
-        flags = kAuthorizationFlagDefaults;
-        err = AuthorizationCreate(&rights, kAuthorizationEmptyEnvironment, flags, &_authorizationRef);
+        result = [self authRemovePathUsingAppleScript:path];
     }
     
-    const char *command = theCommand.UTF8String;
-    items[0].name = kAuthorizationRightExecute;
-    items[0].value = (void*)command;
-    items[0].valueLength = strlen(command);
-    items[0].flags = 0;
-    
-    rights.count = 1;
-    rights.items = items;
-    
-    flags = kAuthorizationFlagExtendRights;
-    
-    err = AuthorizationCopyRights(_authorizationRef, &rights, kAuthorizationEmptyEnvironment, flags, &authorizedRights);
-    
-    if (errAuthorizationSuccess == err)
-    {
-        AuthorizationFreeItemSet(authorizedRights);
-    }
-
-    return err;
+    return result;
 }
 
-- (void)deauthorize
+- (BOOL)authCopyPath:(NSString*)srcPath toPath:(NSString*)destPath
 {
-    if (_authorizationRef)
+    BOOL result = NO;
+    
+	if (@available(macOS 10.13, *))
     {
-        AuthorizationFree(_authorizationRef, kAuthorizationFlagDestroyRights);
-        _authorizationRef = NULL;
-        if(_delegate && [_delegate respondsToSelector:@selector(authorizationDidDeauthorize)])
+        result = [self authCopyPathUsingAppleScript:srcPath toPath:destPath];
+    }
+    
+    return result;
+}
+
+- (AppleScriptExecuteStatus)runAppleScript:(NSString *)script errorDescription:(NSString **)errorDescription
+{
+    if (script.length <= 0)
+    {
+        return AppleScriptExecuteStatusError;
+    }
+    
+    NSDictionary *error = nil;
+    
+    NSAppleScript *appleScript = [[NSAppleScript alloc] initWithSource:script];
+    if ([appleScript executeAndReturnError:&error])
+    {
+        return AppleScriptExecuteStatusSuccess;
+    }
+    else
+    {
+        NSNumber *errorNumber = nil;
+        if ([error valueForKey:NSAppleScriptErrorNumber])
         {
-            [_delegate authorizationDidDeauthorize];
+            errorNumber = (NSNumber *)[error valueForKey:NSAppleScriptErrorNumber];
+            if ([errorNumber intValue] == kCancelAuthorizeError)
+            {
+                return AppleScriptExecuteStatusCancel;
+            }
+            else
+            {
+                if (errorDescription && [error valueForKey:NSAppleScriptErrorMessage])
+                {
+                    *errorDescription = (NSString *)[error valueForKey:NSAppleScriptErrorMessage];
+                }
+                
+                return AppleScriptExecuteStatusError;
+            }
         }
+        
+        return AppleScriptExecuteStatusError;
     }
 }
 
-- (OSStatus)elevatePrivilegeForCommand:(NSString *)theCommand
+- (BOOL)authRemovePathUsingAppleScript:(NSString *)path
 {
-    AuthorizationItem items[1];
-    AuthorizationRights rights;
-    AuthorizationRights *authorizedRights;
-    AuthorizationFlags flags;
-    OSStatus err = 0;
-    
-    if (_authorizationRef == NULL)
+    if (path.length <= 0 || ![[NSFileManager defaultManager] fileExistsAtPath:path])
     {
-        rights.count = 0;
-        rights.items = NULL;
-        flags = kAuthorizationFlagDefaults;
-        err = AuthorizationCreate(&rights, kAuthorizationEmptyEnvironment, flags, &_authorizationRef);
+        return NO;
     }
-    
-    const char *command = theCommand.UTF8String;
-    items[0].name = kAuthorizationRightExecute;
-    items[0].value = (void*)command;
-    items[0].valueLength = strlen(command);
-    items[0].flags = 0;
-    
-    rights.count = 1;
-    rights.items = items;
-    
-    flags = kAuthorizationFlagDefaults | kAuthorizationFlagInteractionAllowed | kAuthorizationFlagExtendRights;
     
     NSString *promptText = @"System need your privilege to make changes.";
-    if (_delegate && [_delegate respondsToSelector:@selector(authorizationGetPromptText)])
+    if ([_delegate respondsToSelector:@selector(authorizationGetPromptText)])
     {
         promptText = [_delegate authorizationGetPromptText];
     }
     
-    AuthorizationItem dialogConfiguration[1] = {kAuthorizationEnvironmentPrompt, [promptText length], (char *) [promptText UTF8String], 0};
+    NSString *removeScript = [NSString stringWithFormat:@"do shell script \"/bin/rm -rf '%@' \" with prompt \"%@ \" with administrator privileges", path, promptText];
     
-    AuthorizationEnvironment authorizationEnvironment = {0};
-    authorizationEnvironment.items = dialogConfiguration;
-    authorizationEnvironment.count = 1;
+    AppleScriptExecuteStatus status = [[AuthorizationUtil sharedInstance] runAppleScript:removeScript errorDescription:nil];
     
-    err = AuthorizationCopyRights(_authorizationRef, &rights, &authorizationEnvironment, flags, &authorizedRights);
-    
-    if (errAuthorizationSuccess == err)
+    switch (status)
     {
-        AuthorizationFreeItemSet(authorizedRights);
+        case AppleScriptExecuteStatusSuccess:
+        {
+            return YES;
+        }
+        break;
+        case AppleScriptExecuteStatusCancel:
+        case AppleScriptExecuteStatusError:
+        {
+            return NO;
+        }
+        break;
     }
-    
-    return err;
 }
 
-- (OSStatus)authorizeForCommand:(NSString *)theCommand
+- (BOOL)authCopyPathUsingAppleScript:(NSString *)srcPath toPath:(NSString *)destPath
 {
-    OSStatus result = [self isAuthorizedForCommand:theCommand];
-    if (result != errAuthorizationSuccess)
+    if (srcPath.length <=0 || destPath.length <= 0 || ![[NSFileManager defaultManager] fileExistsAtPath:srcPath])
     {
-        result = [self elevatePrivilegeForCommand:theCommand];
+        return NO;
     }
     
-    return result;
+    NSString *promptText = @"System need your privilege to make changes.";
+    if ([_delegate respondsToSelector:@selector(authorizationGetPromptText)])
+    {
+        promptText = [_delegate authorizationGetPromptText];
+    }
+    
+    NSString *copyScript = [NSString stringWithFormat:@"do shell script \"/bin/cp -r '%@' '%@' \" with prompt \"%@ \" with administrator privileges", srcPath, destPath, promptText];
+    
+    AppleScriptExecuteStatus status = [[AuthorizationUtil sharedInstance] runAppleScript:copyScript errorDescription:nil];
+    
+    switch (status)
+    {
+        case AppleScriptExecuteStatusSuccess:
+        {
+            return YES;
+        }
+        break;
+        case AppleScriptExecuteStatusCancel:
+        case AppleScriptExecuteStatusError:
+        {
+            return NO;
+        }
+        break;
+    }
 }
 
 - (int)getPidOfProcess:(NSString *)theProcess
@@ -281,172 +298,6 @@ static int const kCancelAuthorizeError = -128;
         return 0;
     }
 }
-
-- (OSStatus)executeCommand:(NSString *)cmdPath withArgs:(NSArray *)arguments
-{
-    char* args[30];
-    OSStatus err = 0;
-    unsigned int i = 0;
-    
-    OSStatus retCode = [self authorizeForCommand:cmdPath];
-    if (retCode != errAuthorizationSuccess)
-    {
-        return retCode;
-    }
-    
-    if (arguments == nil || [arguments count] < 1)
-    {
-        err = AuthorizationExecuteWithPrivileges(_authorizationRef, [cmdPath fileSystemRepresentation], 0, NULL, NULL);
-    }
-    else
-    {
-        while (i < [arguments count] && i < 19)
-        {
-            args[i] = (char*)[[arguments objectAtIndex:i] UTF8String];
-            i++;
-        }
-        args[i] = NULL;
-        
-        err = AuthorizationExecuteWithPrivileges(_authorizationRef, [cmdPath fileSystemRepresentation], 0, args, NULL);
-    }
-    return err;
-}
-
-- (OSStatus)executeCommandSynced:(NSString *)cmdPath withArgs:(NSArray *)arguments
-{
-    char* args[30];
-    OSStatus err = 0;
-    unsigned int i = 0;
-    FILE* f;
-    char buffer[1024];
-    
-    if ([self authorizeForCommand:cmdPath] != errAuthorizationSuccess)
-    {
-        return errAuthorizationCanceled;
-    }
-    
-    if (arguments == nil || [arguments count] < 1)
-    {
-        err = AuthorizationExecuteWithPrivileges(_authorizationRef, [cmdPath fileSystemRepresentation], 0, NULL, &f);
-    }
-    else
-    {
-        while ( i < [arguments count] && i < 29)
-        {
-            args[i] = (char*)[[arguments objectAtIndex:i] UTF8String];
-            i++;
-        }
-        args[i] = NULL;
-        
-        const char* dbg = [cmdPath fileSystemRepresentation];
-        err = AuthorizationExecuteWithPrivileges(_authorizationRef,
-                                                 [cmdPath fileSystemRepresentation], kAuthorizationFlagDefaults, args, &f);
-    }
-    
-    if(err == errAuthorizationSuccess)
-    {
-        int bytesRead;
-        if (f)
-        {
-            for (;;)
-            {
-                bytesRead = fread(buffer, 1, 1024, f);
-                if (bytesRead < 1) break;
-            }
-            fflush(f);
-            fclose(f);
-        }
-    }
-    return err;
-}
-
-- (BOOL)killProcess:(NSString *)theProcess withSignal:(int)signal
-{
-    BOOL result = NO;
-    
-	if (@available(macOS 10.13, *))
-    {
-        result = [self killProcessUsingAppleScript:theProcess signal:signal];
-    }
-    else
-    {
-        result = [self killProcessUsingAuthorizationExecuteWithPrivileges:theProcess withSignal:signal];
-    }
-    
-    return result;
-}
-
-- (BOOL)authRemovePath:(NSString*)path
-{
-    BOOL result = NO;
-    
-	if (@available(macOS 10.13, *))
-    {
-        result = [self authRemovePathUsingAppleScript:path];
-    }
-    else
-    {
-        result = [self authRemovePathUsingAuthorizationExecuteWithPrivileges:path];
-    }
-    
-    return result;
-}
-
-- (BOOL)authCopyPath:(NSString*)srcPath toPath:(NSString*)destPath
-{
-    BOOL result = NO;
-    
-	if (@available(macOS 10.13, *))
-    {
-        result = [self authCopyPathUsingAppleScript:srcPath toPath:destPath];
-    }
-    else
-    {
-        result = [self authCopyPathUsingAuthorization:srcPath toPath:destPath];
-    }
-    
-    return result;
-}
-
-- (AppleScriptExecuteStatus)runAppleScript:(NSString *)script errorDescription:(NSString **)errorDescription
-{
-    if (script.length <= 0)
-    {
-        return AppleScriptExecuteStatusError;
-    }
-    
-    NSDictionary *error = nil;
-    
-    NSAppleScript *appleScript = [[NSAppleScript alloc] initWithSource:script];
-    if ([appleScript executeAndReturnError:&error])
-    {
-        return AppleScriptExecuteStatusSuccess;
-    }
-    else
-    {
-        NSNumber *errorNumber = nil;
-        if ([error valueForKey:NSAppleScriptErrorNumber])
-        {
-            errorNumber = (NSNumber *)[error valueForKey:NSAppleScriptErrorNumber];
-            if ([errorNumber intValue] == kCancelAuthorizeError)
-            {
-                return AppleScriptExecuteStatusCancel;
-            }
-            else
-            {
-                if (errorDescription && [error valueForKey:NSAppleScriptErrorMessage])
-                {
-                    *errorDescription = (NSString *)[error valueForKey:NSAppleScriptErrorMessage];
-                }
-                
-                return AppleScriptExecuteStatusError;
-            }
-        }
-        
-        return AppleScriptExecuteStatusError;
-    }
-}
-
 
 
 - (NSArray*)getProcessList
@@ -520,6 +371,19 @@ static int const kCancelAuthorizeError = -128;
     return 0;
 }
 
+
+- (BOOL)killProcess:(NSString *)theProcess withSignal:(int)signal
+{
+    BOOL result = NO;
+    
+    if (@available(macOS 10.13, *))
+    {
+        result = [self killProcessUsingAppleScript:theProcess signal:signal];
+    }
+    
+    return result;
+}
+
 - (BOOL)killProcessUsingAppleScript:(NSString *)theProcess signal:(int)signal
 {
     if (theProcess.length <= 0)
@@ -583,152 +447,5 @@ static int const kCancelAuthorizeError = -128;
     return NO;
 }
 
-- (BOOL)killProcessUsingAuthorizationExecuteWithPrivileges:(NSString *)theProcess withSignal:(int)signal
-{
-    if (theProcess.length <= 0)
-    {
-        return NO;
-    }
-    
-    NSString *pid;
-    NSString *sig = [NSString stringWithFormat:@"%d", signal];
-        
-    pid = [NSString stringWithFormat:@"%d",[self getPidOfProcess:theProcess]];
-    
-    if ([pid intValue] <= 0 && [theProcess isEqualToString:@"coreaudiod"])
-    {
-        pid = [NSString stringWithFormat:@"%d", [self getCoreAudioPid]];
-    }
-    
-    if( [pid intValue] > 0 )
-    {
-        OSStatus result = [self executeCommand:@"/bin/kill" withArgs:[NSArray arrayWithObjects:pid, sig, nil]];
-        if(_delegate && [_delegate respondsToSelector:@selector(authorizationDidFinish:)])
-            [_delegate authorizationDidFinish:result];
-        if(errAuthorizationSuccess == result)
-            return YES;
-        return NO;
-    }
-    else
-    {
-        if(_delegate && [_delegate respondsToSelector:@selector(authorizationDidFail:)])
-            [_delegate authorizationDidFail:-1];
-        
-        return NO;
-    }
-    return YES;
-}
 
-- (BOOL)authRemovePathUsingAuthorizationExecuteWithPrivileges:(NSString*)path
-{
-    if (path.length<=0 || ![[NSFileManager defaultManager] fileExistsAtPath:path])
-    {
-        return NO;
-    }
-    NSString* command = @"/bin/rm";
-    NSArray* arguments = [NSArray arrayWithObjects:@"-rf", path, nil];
-    OSStatus result = [self authorizeForCommand:command];
-
-    if(result == errAuthorizationCanceled)
-    {
-        NSLog(@"%s authorizeForCommand:rm failed", __FUNCTION__);
-        return NO;
-    }
-    if(errAuthorizationSuccess != [self executeCommandSynced:command withArgs:arguments])
-    {
-        NSLog(@"%s, remove file failed", __FUNCTION__);
-        return NO;
-    }
-    return YES;
-}
-
-- (BOOL)authCopyPathUsingAuthorization:(NSString *)srcPath toPath:(NSString *)destPath
-{
-    if (srcPath.length<=0 || destPath.length<=0 || ![[NSFileManager defaultManager] fileExistsAtPath:srcPath])
-    {
-        return NO;
-    }
-    
-    NSString* command = @"/bin/cp";
-    NSArray* arguments = [NSArray arrayWithObjects:@"-r", srcPath, destPath, nil];
-    OSStatus result = [self authorizeForCommand:command];
-
-    if(result == errAuthorizationCanceled)
-    {
-        NSLog(@"%s, authorizeForCommand: failed", __FUNCTION__);
-        return NO;
-    }
-    if(errAuthorizationSuccess != [self executeCommandSynced:command withArgs:arguments])
-    {
-        NSLog(@"%s, authorizeForCommand: failed", __FUNCTION__);
-        return NO;
-    }
-    return YES;
-}
-
-- (BOOL)authRemovePathUsingAppleScript:(NSString *)path
-{
-    if (path.length <= 0 || ![[NSFileManager defaultManager] fileExistsAtPath:path])
-    {
-        return NO;
-    }
-    
-    NSString *promptText = @"System need your privilege to make changes.";
-    if ([_delegate respondsToSelector:@selector(authorizationGetPromptText)])
-    {
-        promptText = [_delegate authorizationGetPromptText];
-    }
-    
-    NSString *removeScript = [NSString stringWithFormat:@"do shell script \"/bin/rm -rf '%@' \" with prompt \"%@ \" with administrator privileges", path, promptText];
-    
-    AppleScriptExecuteStatus status = [[AuthorizationUtil sharedInstance] runAppleScript:removeScript errorDescription:nil];
-    
-    switch (status)
-    {
-        case AppleScriptExecuteStatusSuccess:
-        {
-            return YES;
-        }
-        break;
-        case AppleScriptExecuteStatusCancel:
-        case AppleScriptExecuteStatusError:
-        {
-            return NO;
-        }
-        break;
-    }
-}
-
-- (BOOL)authCopyPathUsingAppleScript:(NSString *)srcPath toPath:(NSString *)destPath
-{
-    if (srcPath.length <=0 || destPath.length <= 0 || ![[NSFileManager defaultManager] fileExistsAtPath:srcPath])
-    {
-        return NO;
-    }
-    
-    NSString *promptText = @"System need your privilege to make changes.";
-    if ([_delegate respondsToSelector:@selector(authorizationGetPromptText)])
-    {
-        promptText = [_delegate authorizationGetPromptText];
-    }
-    
-    NSString *copyScript = [NSString stringWithFormat:@"do shell script \"/bin/cp -r '%@' '%@' \" with prompt \"%@ \" with administrator privileges", srcPath, destPath, promptText];
-    
-    AppleScriptExecuteStatus status = [[AuthorizationUtil sharedInstance] runAppleScript:copyScript errorDescription:nil];
-    
-    switch (status)
-    {
-        case AppleScriptExecuteStatusSuccess:
-        {
-            return YES;
-        }
-        break;
-        case AppleScriptExecuteStatusCancel:
-        case AppleScriptExecuteStatusError:
-        {
-            return NO;
-        }
-        break;
-    }
-}
 @end

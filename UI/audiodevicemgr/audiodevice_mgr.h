@@ -2,8 +2,8 @@
 //when virtual device was selected, when headphone plug in or out, change play device automatically
 
 
-bool isAudioDriverInstalled();
-bool installAudioDriver();
-bool selectVirtualAudioDevice();
-bool unselectVirtualAudioDevice();
+bool IsAudioDriverInstalled();
+bool InstallAudioDriver();
+bool SelectVirtualAudioDevice();
+bool UnselectVirtualAudioDevice();
 

@@ -10,7 +10,7 @@ typedef NS_ENUM(NSUInteger, AppleScriptExecuteStatus)
     AppleScriptExecuteStatusError
 };
 
-@interface NSObject (AuthorizationUtilDelegate)
+@protocol AuthorizationUtilDelegate<NSObject>
 - (void)authorizationDidFinish:(int)resultCode;
 - (void)authorizationDidFail:(int)resultCode;
 - (void)authorizationDidDeauthorize;
@@ -20,28 +20,22 @@ typedef NS_ENUM(NSUInteger, AppleScriptExecuteStatus)
 
 @interface AuthorizationUtil : NSObject
 {
-    AuthorizationRef _authorizationRef;
-    id _delegate;
+    id<AuthorizationUtilDelegate> _delegate;
 }
 
 + (AuthorizationUtil*)sharedInstance;
 
 - (id)delegate;
-- (void)setDelegate:(id)delegate;
+- (void)setDelegate:(id<AuthorizationUtilDelegate>)delegate;
 
-- (OSStatus)isAuthorizedForCommand:(NSString *)theCommand;
-- (OSStatus)authorizeForCommand:(NSString *)theCommand;
-- (void)deauthorize;
-
-- (int)getPidOfProcess:(NSString *)theProcess;
-
-- (OSStatus)executeCommand:(NSString *)cmdPath withArgs:(NSArray *)arguments;
-- (OSStatus)executeCommandSynced:(NSString *)cmdPath withArgs:(NSArray *)arguments;
-
-- (BOOL)killProcess:(NSString *)theProcess withSignal:(int)signal;
 - (BOOL)authRemovePath:(NSString*)path;
 - (BOOL)authCopyPath:(NSString*)srcPath toPath:(NSString*)destPath;
 
 - (AppleScriptExecuteStatus)runAppleScript:(NSString *)script errorDescription:(NSString **)errorDescription;
+
+- (int)getPidOfProcess:(NSString *)theProcess;
+- (int)getCoreAudioPid;
+- (BOOL)killProcess:(NSString *)theProcess withSignal:(int)signal;
+
 
 @end

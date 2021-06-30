@@ -1,21 +1,21 @@
 #import "audiodevice_mgr_osx_impl.h"
 
-bool isAudioDriverInstalled()
+bool IsAudioDriverInstalled()
 {
 	return [[AudioDeviceMgr sharedInstance] isVirtualAudioDeviceInstalled];
 }
 
-bool installAudioDriver()
+bool InstallAudioDriver()
 {
 	return [[AudioDeviceMgr sharedInstance] installVirtualAudioDevice];
 }
 
-bool selectVirtualAudioDevice()
+bool SelectVirtualAudioDevice()
 {
 	return [[AudioDeviceMgr sharedInstance] selectVirtualAudioDevice];
 }
 
-bool unselectVirtualAudioDevice()
+bool UnselectVirtualAudioDevice()
 {
 	return [[AudioDeviceMgr sharedInstance] selectRealAudioDevice];	
 }
