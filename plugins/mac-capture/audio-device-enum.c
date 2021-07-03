@@ -12,8 +12,8 @@ static inline bool device_is_input(char *device)
 	return astrstri(device, "soundflower") == NULL &&
 	       astrstri(device, "wavtap") == NULL &&
 	       astrstri(device, "soundsiphon") == NULL &&
-           astrstri(device, "Background Music") == NULL &&
-           astrstri(device, "BetterRecorder Audio Device") == NULL;
+           astrstri(device, "BGMDevice") == NULL &&
+           astrstri(device, "BetterRecorderAudioDevice") == NULL;
 }
 
 static inline bool enum_success(OSStatus stat, const char *msg)
