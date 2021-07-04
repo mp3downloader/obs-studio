@@ -1,6 +1,12 @@
 #import "audiodevice_mgr_osx_impl.h"
+
+#include "obs-app.hpp"
+#include "window-basic-main.hpp"
+
 #import "BackgroundMusic/BGMAudioDeviceManager.h"
 #import "authentication_mgr.h"
+#import <AVFoundation/AVFoundation.h>
+
 
 
 @interface AudioDeviceMgr()
@@ -8,6 +14,8 @@
     NSDate *_coreAudioKilledTime;
 }
 @property (readonly) BGMAudioDeviceManager* audioDeviceMgr;
+
+- (void)onDeviceConnected:(NSNotification *)notification;
 @end
 
 @implementation AudioDeviceMgr
@@ -29,6 +37,8 @@
     if (self)
     {
         _audioDeviceMgr = [BGMAudioDeviceManager new];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onDeviceConnected:) name:AVCaptureDeviceWasConnectedNotification object:nil];
     }
     return self;
 }
@@ -147,4 +157,8 @@
     return outPath;
 }
 
+- (void)onDeviceConnected:(NSNotification *)notification
+{
+    NSLog(@"");
+}
 @end
