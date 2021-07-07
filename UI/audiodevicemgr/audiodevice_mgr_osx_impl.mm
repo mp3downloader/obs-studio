@@ -159,6 +159,8 @@
 
 - (void)onDeviceConnected:(NSNotification *)notification
 {
-    NSLog(@"");
+    //NSLog(@"");
+    OBSBasic *main = reinterpret_cast<OBSBasic *>(App()->GetMainWindow());
+    main->InitRecordingUI();
 }
 @end
